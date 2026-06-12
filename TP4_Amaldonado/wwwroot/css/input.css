@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@source "../../Components/**/*.razor";
+@source "../../Pages/**/*.razor";
+@source "../../**/*.razor";
