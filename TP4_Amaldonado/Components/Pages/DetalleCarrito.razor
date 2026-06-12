@@ -1,0 +1,112 @@
+﻿@page "/carritos/{id:int}"
+@using TP4_Amaldonado.Models
+@using TP4_Amaldonado.Services
+@inject CartService CartService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detalle del carrito</PageTitle>
+
+<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
+    Volver
+</button>
+
+@if (isLoading)
+{
+    <p>Cargando detalle del carrito...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+else if (cart is null)
+{
+    <div class="alert alert-info">
+        No se encontró el carrito solicitado.
+    </div>
+}
+else
+{
+    <h1 class="mb-3">Carrito #@cart.Id</h1>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <p><strong>Usuario:</strong> @cart.UserId</p>
+            <p><strong>Total productos:</strong> @cart.TotalProducts</p>
+            <p><strong>Cantidad total:</strong> @cart.TotalQuantity</p>
+            <p><strong>Total:</strong> $@cart.Total</p>
+            <p><strong>Total con descuento:</strong> $@cart.DiscountedTotal</p>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Productos del carrito</h3>
+
+    <div class="row">
+        @foreach (var product in cart.Products)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="@product.Thumbnail"
+                         class="card-img-top p-3"
+                         alt="@product.Title"
+                         style="height: 180px; object-fit: contain;" />
+
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Title</h5>
+
+                        <p class="card-text mb-1">
+                            <strong>Precio:</strong> $@product.Price
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>Cantidad:</strong> @product.Quantity
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>Total:</strong> $@product.Total
+                        </p>
+
+                        <p class="card-text">
+                            <strong>Total con descuento:</strong> $@product.DiscountedTotal
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Cart? cart;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDetalle();
+    }
+
+    private async Task CargarDetalle()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        cart = await CartService.GetCartByIdAsync(id);
+
+        if (cart is null)
+        {
+            errorMessage = "No se pudo cargar el detalle del carrito desde la API.";
+        }
+
+        isLoading = false;
+    }
+
+    private void Volver()
+    {
+        NavigationManager.NavigateTo("/carritos");
+    }
+}

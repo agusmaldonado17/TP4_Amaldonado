@@ -1,0 +1,149 @@
+﻿@page "/carritos/nuevo"
+@using TP4_Amaldonado.Models
+@using TP4_Amaldonado.Services
+@inject CartService CartService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nuevo carrito</PageTitle>
+
+<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
+    Volver
+</button>
+
+<h1 class="mb-4">Nuevo carrito</h1>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <EditForm Model="cartRequest" OnValidSubmit="GuardarCarrito">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">ID de usuario</label>
+                <InputNumber class="form-control" @bind-Value="cartRequest.UserId" />
+            </div>
+
+            <h5 class="mt-4">Producto 1</h5>
+
+            <div class="mb-3">
+                <label class="form-label">ID del producto</label>
+                <InputNumber class="form-control" @bind-Value="producto1.Id" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cantidad</label>
+                <InputNumber class="form-control" @bind-Value="producto1.Quantity" />
+            </div>
+
+            <h5 class="mt-4">Producto 2</h5>
+
+            <div class="mb-3">
+                <label class="form-label">ID del producto</label>
+                <InputNumber class="form-control" @bind-Value="producto2.Id" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cantidad</label>
+                <InputNumber class="form-control" @bind-Value="producto2.Quantity" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @(isSaving ? "Guardando..." : "Crear carrito")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success mt-3">
+        @successMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">
+        @errorMessage
+    </div>
+}
+
+@if (createdCart is not null)
+{
+    <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+            <h5>Carrito creado</h5>
+            <p><strong>ID:</strong> @createdCart.Id</p>
+            <p><strong>Usuario:</strong> @createdCart.UserId</p>
+            <p><strong>Total productos:</strong> @createdCart.TotalProducts</p>
+            <p><strong>Cantidad total:</strong> @createdCart.TotalQuantity</p>
+            <p><strong>Total:</strong> $@createdCart.Total</p>
+            <p><strong>Total con descuento:</strong> $@createdCart.DiscountedTotal</p>
+        </div>
+    </div>
+}
+
+@code {
+    private CartRequest cartRequest = new()
+    {
+        UserId = 1
+    };
+
+    private CartRequestProduct producto1 = new()
+    {
+        Id = 1,
+        Quantity = 1
+    };
+
+    private CartRequestProduct producto2 = new()
+    {
+        Id = 2,
+        Quantity = 1
+    };
+
+    private Cart? createdCart;
+    private bool isSaving;
+    private string? successMessage;
+    private string? errorMessage;
+
+    private async Task GuardarCarrito()
+    {
+        isSaving = true;
+        successMessage = null;
+        errorMessage = null;
+        createdCart = null;
+
+        cartRequest.Products = new List<CartRequestProduct>
+        {
+            producto1,
+            producto2
+        }
+        .Where(p => p.Id > 0 && p.Quantity > 0)
+        .ToList();
+
+        if (cartRequest.UserId <= 0 || cartRequest.Products.Count == 0)
+        {
+            errorMessage = "Debe ingresar un usuario válido y al menos un producto.";
+            isSaving = false;
+            return;
+        }
+
+        createdCart = await CartService.CreateCartAsync(cartRequest);
+
+        if (createdCart is not null)
+        {
+            successMessage = "El carrito fue creado correctamente. DummyJSON simula la creación, pero no guarda el dato de forma permanente.";
+        }
+        else
+        {
+            errorMessage = "No se pudo crear el carrito.";
+        }
+
+        isSaving = false;
+    }
+
+    private void Volver()
+    {
+        NavigationManager.NavigateTo("/carritos");
+    }
+}

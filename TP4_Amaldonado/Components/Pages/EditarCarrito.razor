@@ -1,0 +1,182 @@
+﻿@page "/carritos/editar/{id:int}"
+@using TP4_Amaldonado.Models
+@using TP4_Amaldonado.Services
+@inject CartService CartService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar carrito</PageTitle>
+
+<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
+    Volver
+</button>
+
+@if (isLoading)
+{
+    <p>Cargando datos del carrito...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+else
+{
+    <h1 class="mb-4">Editar carrito #@id</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <EditForm Model="cartRequest" OnValidSubmit="GuardarCambios">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label class="form-label">ID de usuario</label>
+                    <InputNumber class="form-control" @bind-Value="cartRequest.UserId" />
+                </div>
+
+                <h5 class="mt-4">Producto 1</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">ID del producto</label>
+                    <InputNumber class="form-control" @bind-Value="producto1.Id" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cantidad</label>
+                    <InputNumber class="form-control" @bind-Value="producto1.Quantity" />
+                </div>
+
+                <h5 class="mt-4">Producto 2</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">ID del producto</label>
+                    <InputNumber class="form-control" @bind-Value="producto2.Id" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cantidad</label>
+                    <InputNumber class="form-control" @bind-Value="producto2.Quantity" />
+                </div>
+
+                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                    @(isSaving ? "Guardando..." : "Guardar cambios")
+                </button>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success mt-3">
+            @successMessage
+        </div>
+    }
+
+    @if (updatedCart is not null)
+    {
+        <div class="card mt-4 shadow-sm">
+            <div class="card-body">
+                <h5>Carrito actualizado</h5>
+                <p><strong>ID:</strong> @updatedCart.Id</p>
+                <p><strong>Usuario:</strong> @updatedCart.UserId</p>
+                <p><strong>Total productos:</strong> @updatedCart.TotalProducts</p>
+                <p><strong>Cantidad total:</strong> @updatedCart.TotalQuantity</p>
+                <p><strong>Total:</strong> $@updatedCart.Total</p>
+                <p><strong>Total con descuento:</strong> $@updatedCart.DiscountedTotal</p>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private CartRequest cartRequest = new();
+    private CartRequestProduct producto1 = new();
+    private CartRequestProduct producto2 = new();
+
+    private Cart? updatedCart;
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? successMessage;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCarrito();
+    }
+
+    private async Task CargarCarrito()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        var cart = await CartService.GetCartByIdAsync(id);
+
+        if (cart is null)
+        {
+            errorMessage = "No se pudo cargar el carrito para editar.";
+            isLoading = false;
+            return;
+        }
+
+        cartRequest.UserId = cart.UserId;
+
+        if (cart.Products.Count > 0)
+        {
+            producto1.Id = cart.Products[0].Id;
+            producto1.Quantity = cart.Products[0].Quantity;
+        }
+
+        if (cart.Products.Count > 1)
+        {
+            producto2.Id = cart.Products[1].Id;
+            producto2.Quantity = cart.Products[1].Quantity;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task GuardarCambios()
+    {
+        isSaving = true;
+        successMessage = null;
+        errorMessage = null;
+        updatedCart = null;
+
+        cartRequest.Products = new List<CartRequestProduct>
+        {
+            producto1,
+            producto2
+        }
+        .Where(p => p.Id > 0 && p.Quantity > 0)
+        .ToList();
+
+        if (cartRequest.UserId <= 0 || cartRequest.Products.Count == 0)
+        {
+            errorMessage = "Debe ingresar un usuario válido y al menos un producto.";
+            isSaving = false;
+            return;
+        }
+
+        updatedCart = await CartService.UpdateCartAsync(id, cartRequest);
+
+        if (updatedCart is not null)
+        {
+            successMessage = "El carrito fue actualizado correctamente. DummyJSON simula la modificación, pero no guarda el cambio de forma permanente.";
+        }
+        else
+        {
+            errorMessage = "No se pudo actualizar el carrito.";
+        }
+
+        isSaving = false;
+    }
+
+    private void Volver()
+    {
+        NavigationManager.NavigateTo("/carritos");
+    }
+}

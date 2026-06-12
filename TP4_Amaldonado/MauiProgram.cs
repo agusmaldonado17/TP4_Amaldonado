@@ -16,8 +16,16 @@ namespace TP4_Amaldonado
 
             builder.Services.AddMauiBlazorWebView();
 
+            //Clase par conectarse con el servicio de api rest
+            builder.Services.AddScoped(sp => new HttpClient
+            {
+                BaseAddress = new Uri("https://dummyjson.com/")
+            });
+
+            builder.Services.AddScoped<TP4_Amaldonado.Services.CartService>();
+
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 

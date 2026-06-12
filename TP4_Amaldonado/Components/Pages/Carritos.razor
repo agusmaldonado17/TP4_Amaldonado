@@ -1,0 +1,168 @@
+﻿@page "/carritos"
+@using TP4_Amaldonado.Models
+@using TP4_Amaldonado.Services
+@inject CartService CartService
+@inject NavigationManager NavigationManager
+<!--//Herramienta de blazor que ejecuta js desde c# para mostrar el carte de confirmacion de eliminar-->
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Carritos</PageTitle>
+
+<h1 class="mb-4">Carritos de compra</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="IrANuevoCarrito">
+        Nuevo carrito
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <p>Cargando carritos...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">
+        @successMessage
+    </div>
+}
+else if (carts.Count == 0)
+{
+    <div class="alert alert-info">
+        No se encontraron carritos.
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var cart in carts)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Carrito #@cart.Id</h5>
+
+                        <p class="card-text mb-1">
+                            <strong>Usuario:</strong> @cart.UserId
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>Total productos:</strong> @cart.TotalProducts
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>Cantidad total:</strong> @cart.TotalQuantity
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>Total:</strong> $@cart.Total
+                        </p>
+
+                        <p class="card-text">
+                            <strong>Total con descuento:</strong> $@cart.DiscountedTotal
+                        </p>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm"
+                                    @onclick="() => VerDetalle(cart.Id)">
+                                Ver detalle
+                            </button>
+
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    @onclick="() => EditarCarrito(cart.Id)">
+                                Editar
+                            </button>
+
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @onclick="() => EliminarCarrito(cart.Id)">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Cart> carts = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCarritos();
+    }
+
+    private async Task CargarCarritos()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        carts = await CartService.GetCartsAsync();
+
+        if (carts.Count == 0)
+        {
+            errorMessage = "No se pudieron cargar los carritos desde la API.";
+        }
+
+        isLoading = false;
+    }
+
+    private void IrANuevoCarrito()
+    {
+        NavigationManager.NavigateTo("/carritos/nuevo");
+    }
+
+    private void VerDetalle(int id)
+    {
+        NavigationManager.NavigateTo($"/carritos/{id}");
+    }
+
+    private void EditarCarrito(int id)
+    {
+        NavigationManager.NavigateTo($"/carritos/editar/{id}");
+    }
+
+    private async Task EliminarCarrito(int id)
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"¿Seguro que querés eliminar el carrito #{id}?"
+        );
+
+        if (!confirmar)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        successMessage = null;
+
+        var eliminado = await CartService.DeleteCartAsync(id);
+
+        if (eliminado)
+        {
+            var cart = carts.FirstOrDefault(c => c.Id == id);
+
+            if (cart is not null)
+            {
+                carts.Remove(cart);
+            }
+
+            successMessage = $"El carrito #{id} fue eliminado correctamente. DummyJSON simula la eliminación, pero no guarda el cambio de forma permanente.";
+        }
+        else
+        {
+            errorMessage = "No se pudo eliminar el carrito.";
+        }
+    }
+}

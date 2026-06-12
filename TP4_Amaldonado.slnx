@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="TP4_Amaldonado/TP4_Amaldonado.csproj" />
+  <Project Path="TP4_Amaldonado/TP4_Amaldonado.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
 </Solution>
