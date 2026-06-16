@@ -6,77 +6,133 @@
 
 <PageTitle>Detalle del carrito</PageTitle>
 
-<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
-    Volver
-</button>
+<section class="space-y-8">
+    <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div>
+            <button class="mb-5 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    @onclick="Volver">
+                Volver
+            </button>
 
-@if (isLoading)
-{
-    <p>Cargando detalle del carrito...</p>
-}
-else if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">
-        @errorMessage
-    </div>
-}
-else if (cart is null)
-{
-    <div class="alert alert-info">
-        No se encontró el carrito solicitado.
-    </div>
-}
-else
-{
-    <h1 class="mb-3">Carrito #@cart.Id</h1>
+            <p class="text-sm font-medium uppercase tracking-[0.22em] text-slate-400">
+                Detalle del carrito
+            </p>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <p><strong>Usuario:</strong> @cart.UserId</p>
-            <p><strong>Total productos:</strong> @cart.TotalProducts</p>
-            <p><strong>Cantidad total:</strong> @cart.TotalQuantity</p>
-            <p><strong>Total:</strong> $@cart.Total</p>
-            <p><strong>Total con descuento:</strong> $@cart.DiscountedTotal</p>
+            @if (cart is not null)
+            {
+                <h2 class="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+                    Carrito #@cart.Id
+                </h2>
+
+                <p class="mt-3 text-slate-500">
+                    Productos asociados al carrito seleccionado.
+                </p>
+            }
         </div>
     </div>
 
-    <h3 class="mb-3">Productos del carrito</h3>
-
-    <div class="row">
-        @foreach (var product in cart.Products)
-        {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <img src="@product.Thumbnail"
-                         class="card-img-top p-3"
-                         alt="@product.Title"
-                         style="height: 180px; object-fit: contain;" />
-
-                    <div class="card-body">
-                        <h5 class="card-title">@product.Title</h5>
-
-                        <p class="card-text mb-1">
-                            <strong>Precio:</strong> $@product.Price
-                        </p>
-
-                        <p class="card-text mb-1">
-                            <strong>Cantidad:</strong> @product.Quantity
-                        </p>
-
-                        <p class="card-text mb-1">
-                            <strong>Total:</strong> $@product.Total
-                        </p>
-
-                        <p class="card-text">
-                            <strong>Total con descuento:</strong> $@product.DiscountedTotal
-                        </p>
-                    </div>
-                </div>
+    @if (isLoading)
+    {
+        <div class="rounded-3xl border border-slate-200 bg-white p-8 text-slate-500 shadow-sm">
+            Cargando detalle del carrito...
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="rounded-3xl border border-red-200 bg-red-50 p-5 text-red-700">
+            @errorMessage
+        </div>
+    }
+    else if (cart is null)
+    {
+        <div class="rounded-3xl border border-slate-200 bg-white p-8 text-slate-500 shadow-sm">
+            No se encontró el carrito solicitado.
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-5 md:grid-cols-4">
+            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p class="text-sm text-slate-500">Usuario</p>
+                <p class="mt-2 text-2xl font-semibold text-slate-950">@cart.UserId</p>
             </div>
-        }
-    </div>
-}
 
+            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p class="text-sm text-slate-500">Productos</p>
+                <p class="mt-2 text-2xl font-semibold text-slate-950">@cart.TotalProducts</p>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p class="text-sm text-slate-500">Cantidad total</p>
+                <p class="mt-2 text-2xl font-semibold text-slate-950">@cart.TotalQuantity</p>
+            </div>
+
+            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
+                <p class="text-sm text-emerald-700">Total con descuento</p>
+                <p class="mt-2 text-2xl font-semibold text-emerald-800">$@cart.DiscountedTotal</p>
+            </div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-sm font-medium uppercase tracking-[0.22em] text-slate-400">
+                        Productos
+                    </p>
+
+                    <h3 class="mt-2 text-2xl font-semibold text-slate-950">
+                        Productos del carrito
+                    </h3>
+                </div>
+
+                <p class="text-sm text-slate-500">
+                    Total sin descuento: <span class="font-semibold text-slate-900">$@cart.Total</span>
+                </p>
+            </div>
+
+            <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                @foreach (var product in cart.Products)
+                {
+                    <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                        <div class="flex h-56 items-center justify-center bg-slate-50 p-6">
+                            <img src="@product.Thumbnail"
+                                 alt="@product.Title"
+                                 class="h-full w-full object-contain" />
+                        </div>
+
+                        <div class="p-6">
+                            <h4 class="text-xl font-semibold text-slate-950">
+                                @product.Title
+                            </h4>
+
+                            <div class="mt-5 space-y-3">
+                                <div class="flex justify-between border-b border-slate-100 pb-3">
+                                    <span class="text-sm text-slate-500">Precio</span>
+                                    <span class="font-semibold text-slate-900">$@product.Price</span>
+                                </div>
+
+                                <div class="flex justify-between border-b border-slate-100 pb-3">
+                                    <span class="text-sm text-slate-500">Cantidad</span>
+                                    <span class="font-semibold text-slate-900">@product.Quantity</span>
+                                </div>
+
+                                <div class="flex justify-between border-b border-slate-100 pb-3">
+                                    <span class="text-sm text-slate-500">Total</span>
+                                    <span class="font-semibold text-slate-900">$@product.Total</span>
+                                </div>
+
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-slate-500">Con descuento</span>
+                                    <span class="font-semibold text-emerald-700">$@product.DiscountedTotal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    }
+</section>
 @code {
     [Parameter]
     public int id { get; set; }

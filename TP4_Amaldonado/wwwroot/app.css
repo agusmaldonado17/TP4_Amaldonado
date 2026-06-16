@@ -99,3 +99,27 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+
+.nav-link-custom {
+    display: flex;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+    .nav-link-custom:hover {
+        background-color: #f1f5f9;
+        color: #020617;
+        text-decoration: none;
+    }
+
+    .nav-link-custom.nav-link-active {
+        background-color: #020617;
+        color: white;
+        text-decoration: none;
+    }

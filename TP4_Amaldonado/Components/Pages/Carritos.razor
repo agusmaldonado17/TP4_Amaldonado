@@ -1,102 +1,170 @@
-﻿@page "/carritos"
+﻿@page "/"
+@page "/carritos"
 @using TP4_Amaldonado.Models
 @using TP4_Amaldonado.Services
 @inject CartService CartService
 @inject NavigationManager NavigationManager
-<!--//Herramienta de blazor que ejecuta js desde c# para mostrar el carte de confirmacion de eliminar-->
-@inject IJSRuntime JSRuntime
+
 
 <PageTitle>Carritos</PageTitle>
 
+<section class="space-y-8">
+    <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-sm font-medium uppercase tracking-[0.22em] text-slate-400">
+                Panel de control
+            </p>
 
-<h1 class="mb-4">Carritos de compra</h1>
+            <h2 class="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+                Carritos de compra
+            </h2>
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="IrANuevoCarrito">
-        Nuevo carrito
-    </button>
-</div>
+            <p class="mt-3 max-w-2xl text-slate-500">
+                Api de prueba DummyJSON.
+            </p>
+        </div>
 
-@if (isLoading)
-{
-    <p>Cargando carritos...</p>
-}
-else if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">
-        @errorMessage
+        <button class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+                @onclick="IrANuevoCarrito">
+            Nuevo carrito
+        </button>
     </div>
-}
-@if (!string.IsNullOrEmpty(successMessage))
-{
-    <div class="alert alert-success">
-        @successMessage
-    </div>
-}
-else if (carts.Count == 0)
-{
-    <div class="alert alert-info">
-        No se encontraron carritos.
-    </div>
-}
-else
-{
-    <div class="row">
-        @foreach (var cart in carts)
-        {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Carrito #@cart.Id</h5>
 
-                        <p class="card-text mb-1">
-                            <strong>Usuario:</strong> @cart.UserId
-                        </p>
+    @if (isLoading)
+    {
+        <div class="rounded-3xl border border-slate-200 bg-white p-8 text-slate-500 shadow-sm">
+            Cargando carritos...
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="rounded-3xl border border-red-200 bg-red-50 p-5 text-red-700">
+            @errorMessage
+        </div>
+    }
 
-                        <p class="card-text mb-1">
-                            <strong>Total productos:</strong> @cart.TotalProducts
-                        </p>
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-700">
+            @successMessage
+        </div>
+    }
 
-                        <p class="card-text mb-1">
-                            <strong>Cantidad total:</strong> @cart.TotalQuantity
-                        </p>
+    @if (!isLoading && string.IsNullOrEmpty(errorMessage) && carts.Count == 0)
+    {
+        <div class="rounded-3xl border border-slate-200 bg-white p-8 text-slate-500 shadow-sm">
+            No se encontraron carritos.
+        </div>
+    }
+    else if (!isLoading && carts.Count > 0)
+    {
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            @foreach (var cart in carts)
+            {
+                <article class="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-md">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">
+                                Carrito
+                            </p>
 
-                        <p class="card-text mb-1">
-                            <strong>Total:</strong> $@cart.Total
-                        </p>
+                            <h3 class="mt-1 text-2xl font-semibold text-slate-950">
+                                #@cart.Id
+                            </h3>
+                        </div>
 
-                        <p class="card-text">
-                            <strong>Total con descuento:</strong> $@cart.DiscountedTotal
-                        </p>
+                        <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            Usuario @cart.UserId
+                        </span>
+                    </div>
 
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary btn-sm"
-                                    @onclick="() => VerDetalle(cart.Id)">
-                                Ver detalle
-                            </button>
+                    <div class="mt-6 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="text-sm text-slate-500">Productos</span>
+                            <span class="font-semibold text-slate-900">@cart.TotalProducts</span>
+                        </div>
 
-                            <button class="btn btn-outline-secondary btn-sm"
-                                    @onclick="() => EditarCarrito(cart.Id)">
-                                Editar
-                            </button>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="text-sm text-slate-500">Cantidad total</span>
+                            <span class="font-semibold text-slate-900">@cart.TotalQuantity</span>
+                        </div>
 
-                            <button class="btn btn-outline-danger btn-sm"
-                                    @onclick="() => EliminarCarrito(cart.Id)">
-                                Eliminar
-                            </button>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="text-sm text-slate-500">Total</span>
+                            <span class="font-semibold text-slate-900">$@cart.Total</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-500">Con descuento</span>
+                            <span class="font-semibold text-emerald-700">$@cart.DiscountedTotal</span>
                         </div>
                     </div>
+
+                    <div class="mt-7 flex items-center gap-2">
+                        <button class="rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                @onclick="() => VerDetalle(cart.Id)">
+                            Ver detalle
+                        </button>
+
+                        <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                @onclick="() => EditarCarrito(cart.Id)">
+                            Editar
+                        </button>
+
+                        <button class="rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                                @onclick="() => EliminarCarrito(cart.Id)">
+                            Eliminar
+                        </button>
+                    </div>
+
+                </article>
+            }
+        </div>
+    }
+
+    @if (showDeleteModal)
+    {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+                <div class="mb-5">
+                    <p class="text-sm font-medium uppercase tracking-[0.22em] text-red-400">
+                        Confirmar eliminación
+                    </p>
+
+                    <h3 class="mt-2 text-2xl font-semibold text-slate-950">
+                        Eliminar carrito #@cartIdToDelete
+                    </h3>
+
+                    <p class="mt-3 text-sm leading-6 text-slate-500">
+                        ¿Seguro que querés eliminar este carrito?
+                    </p>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            @onclick="CancelarEliminacion">
+                        Cancelar
+                    </button>
+
+                    <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                            @onclick="ConfirmarEliminacion">
+                        Eliminar
+                    </button>
                 </div>
             </div>
-        }
-    </div>
-}
+        </div>
+    }
+
+</section>
+
 
 @code {
     private List<Cart> carts = new();
     private bool isLoading = true;
     private string? errorMessage;
     private string? successMessage;
+    private bool showDeleteModal;
+    private int cartIdToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,37 +201,42 @@ else
         NavigationManager.NavigateTo($"/carritos/editar/{id}");
     }
 
-    private async Task EliminarCarrito(int id)
+    private void EliminarCarrito(int id)
     {
-        var confirmar = await JSRuntime.InvokeAsync<bool>(
-            "confirm",
-            $"¿Seguro que querés eliminar el carrito #{id}?"
-        );
+        cartIdToDelete = id;
+        showDeleteModal = true;
+    }
 
-        if (!confirmar)
-        {
-            return;
-        }
+    private void CancelarEliminacion()
+    {
+        showDeleteModal = false;
+        cartIdToDelete = 0;
+    }
 
+    private async Task ConfirmarEliminacion()
+    {
         errorMessage = null;
         successMessage = null;
 
-        var eliminado = await CartService.DeleteCartAsync(id);
+        var eliminado = await CartService.DeleteCartAsync(cartIdToDelete);
 
         if (eliminado)
         {
-            var cart = carts.FirstOrDefault(c => c.Id == id);
+            var cart = carts.FirstOrDefault(c => c.Id == cartIdToDelete);
 
             if (cart is not null)
             {
                 carts.Remove(cart);
             }
 
-            successMessage = $"El carrito #{id} fue eliminado correctamente. DummyJSON simula la eliminación, pero no guarda el cambio de forma permanente.";
+            successMessage = $"El carrito #{cartIdToDelete} fue eliminado correctamente.";
         }
         else
         {
             errorMessage = "No se pudo eliminar el carrito.";
         }
+
+        showDeleteModal = false;
+        cartIdToDelete = 0;
     }
 }
